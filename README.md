@@ -89,25 +89,23 @@ The first command downloads dependencies and compiles the code. The second runs 
 ## Broker and topics
 
 - **Broker:** `tcp://broker.hivemq.com:1883`
-- **Topic 1:** `example/toIgnore`
-- **Topic 2:** `example/toRead`
+- **Topic 1:** `example/position/x`
+- **Topic 2:** `example/position/y`
 - **QoS:** `2`
 
-Despite their names, **both topics are subscribed to and printed** by the current implementation. The subscriber does not filter out `example/toIgnore`.
-
-The publisher sends the same message (`This is message 0`, `This is message 1`, etc.) to both topics once per second, for ten iterations. The subscriber prints the topic, QoS, and message content as each message arrives.
+The topics carry the x and y coordinates of a simulated point. The publisher sends the same integer (`0` through `9`) to both topics once per second, so the point moves diagonally. The subscriber listens to both topics by default. The subscriber prints the topic, QoS, and message content as each message arrives.
 
 Example output (the order of messages can vary):
 
 ```text
 📥 Connected to broker: tcp://broker.hivemq.com:1883
-📥 Subscribed to topic: example/toIgnore
-📥 Subscribed to topic: example/toRead
+📥 Subscribed to topic: example/position/x
+📥 Subscribed to topic: example/position/y
 ↗️ Connected to broker: tcp://broker.hivemq.com:1883
-↗️ published to example/toIgnore: This is message 0
-📥 Delivery :: [example/toIgnore : 2] :: This is message 0
-↗️ published to example/toRead: This is message 0
-📥 Delivery :: [example/toRead : 2] :: This is message 0
+↗️ published to example/position/x: 0
+📥 Delivery :: [example/position/x : 2] :: 0
+↗️ published to example/position/y: 0
+📥 Delivery :: [example/position/y : 2] :: 0
 ```
 
 Because publisher and subscriber start concurrently, the subscriber may not be ready before the first message is published. Missing the earliest messages is possible in the current example.
@@ -122,7 +120,7 @@ Because publisher and subscriber start concurrently, the subscriber may not be r
 
 ## Try it yourself
 
-1. Change one topic in `Main` and observe which messages are delivered.
+1. In `Main`, pass only the x topic to `Subscriber` and leave both topics configured for `Publisher`. Predict which messages will appear in the subscriber output, then run the demo to check.
 2. Change the publisher's QoS and compare the output.
 3. Add another subscriber and observe how both subscribers receive publications.
 4. Run publisher and subscriber as independent applications rather than threads in one application.
@@ -130,7 +128,7 @@ Because publisher and subscriber start concurrently, the subscriber may not be r
 
 ## Public broker precautions
 
-`broker.hivemq.com` is a public test service. **Never publish passwords, private data, or other sensitive information.** Other clients can publish to the same topics. For classroom experiments, replace the example topic names with unique names such as `csc3100/<your-id>/temperature`.
+`broker.hivemq.com` is a public test service. **Never publish passwords, private data, or other sensitive information.** Other clients can publish to the same topics. For classroom experiments, replace the example topic names with unique names such as `example/<random-suffix>/position/x` and `example/<random-suffix>/position/y`.
 
 If no messages appear, verify internet access, TCP port 1883, and broker availability. Also check whether the subscriber finished subscribing before the publisher sent its first message.
 
