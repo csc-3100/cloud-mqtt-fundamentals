@@ -111,6 +111,21 @@ Run topics: example/a1b2c3d4e5f6/position/x, example/a1b2c3d4e5f6/position/y
 
 The publisher starts only after the broker acknowledges the subscriber's subscriptions. If setup fails, the demo reports the failure and skips publishing.
 
+## Follow one message
+
+Follow the first x-coordinate value through the Java code and the broker.
+
+1. **Subscribe.** In `Subscriber.run()`, the client subscribes to the run's x and y topics. `Main` waits for the broker to acknowledge both subscriptions before starting the publisher.
+2. **Publish.** In `Publisher.run()`, the counter starts at zero. The publisher encodes the text `0` as UTF-8, puts those bytes in an `MqttMessage`, and calls `client.publish(topic, message)` with the x topic.
+3. **Route.** The broker matches the x topic to the subscriber's subscription and forwards the message. The publisher only needs the topic name to send it.
+4. **Receive.** Paho calls `Subscriber.messageArrived(topic, message)`. The callback decodes the payload bytes as UTF-8 and prints the subscriber name, topic, QoS, and value.
+
+```text
+📥 subscriber-1 :: [example/a1b2c3d4e5f6/position/x : 2] :: 0
+```
+
+Here, `position/x` identifies the coordinate, `2` is the MQTT quality-of-service level, and `0` is the coordinate value. The middle part of the topic changes on each run.
+
 ## Understanding the design
 
 - **`Runnable`** allows `Publisher` and `Subscriber` to execute concurrently in threads started by `Main`.
