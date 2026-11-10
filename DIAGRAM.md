@@ -10,7 +10,6 @@ classDiagram
 
     class Main {
         -String BROKER_URL
-        -String[] TOPICS
         +main(String[] args)$ void
     }
 
@@ -25,6 +24,7 @@ classDiagram
         -String broker
         -String[] topics
         +Subscriber(String brokerUrl, String[] topics)
+        +awaitSubscriptions() boolean
         +run() void
         +connectionLost(Throwable cause) void
         +messageArrived(String topic, MqttMessage message) void

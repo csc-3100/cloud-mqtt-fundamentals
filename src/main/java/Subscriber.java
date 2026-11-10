@@ -1,4 +1,5 @@
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -16,14 +17,21 @@ public class Subscriber implements Runnable, MqttCallback {
 	
 	private String broker;
 	private String[] topics;
+	private final CompletableFuture<Boolean> subscriptionsReady = new CompletableFuture<>();
+	private String subscriberName;
 	
 	public Subscriber(String brokerUrl, String[] topics) {
 		this.broker = brokerUrl;
 		this.topics = topics;
 	}
 	
+	public boolean awaitSubscriptions() {
+		return subscriptionsReady.join();
+	}
+
 	@Override
 	public void run() {
+		subscriberName = Thread.currentThread().getName();
 		MqttClient client = null;
 		try {
 			// 1. generate a unique clientID and connect to broker
@@ -37,6 +45,7 @@ public class Subscriber implements Runnable, MqttCallback {
 				client.subscribe(topic, 2);
 				System.out.println("📥 Subscribed to topic: " + topic);
 			}
+			subscriptionsReady.complete(true);
 			// 3. keep the client running to listen for messages
 			while (true) {
 				Thread.sleep(1000);
@@ -47,6 +56,7 @@ public class Subscriber implements Runnable, MqttCallback {
 			System.out.println("📥 Demo interrupted.");
 			Thread.currentThread().interrupt();
 		} finally {
+			subscriptionsReady.complete(false);
 			if (client != null && client.isConnected()) {
 				try {
 					client.disconnect();

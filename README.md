@@ -89,26 +89,27 @@ The first command downloads dependencies and compiles the code. The second runs 
 ## Broker and topics
 
 - **Broker:** `tcp://broker.hivemq.com:1883`
-- **Topic 1:** `example/position/x`
-- **Topic 2:** `example/position/y`
+- **Topic 1:** `example/a1b2c3d4e5f6/position/x`
+- **Topic 2:** `example/a1b2c3d4e5f6/position/y`
 - **QoS:** `2`
 
 The topics carry the x and y coordinates of a simulated point. The publisher sends the same integer (`0` through `9`) to both topics once per second, so the point moves diagonally. The subscriber listens to both topics by default. The subscriber prints the topic, QoS, and message content as each message arrives.
 
-Example output (the order of messages can vary):
+Each run generates a random topic prefix and prints both topic names before connecting. The suffix below is an example.
 
 ```text
+Run topics: example/a1b2c3d4e5f6/position/x, example/a1b2c3d4e5f6/position/y
 📥 Connected to broker: tcp://broker.hivemq.com:1883
-📥 Subscribed to topic: example/position/x
-📥 Subscribed to topic: example/position/y
+📥 Subscribed to topic: example/a1b2c3d4e5f6/position/x
+📥 Subscribed to topic: example/a1b2c3d4e5f6/position/y
 ↗️ Connected to broker: tcp://broker.hivemq.com:1883
-↗️ published to example/position/x: 0
-📥 Delivery :: [example/position/x : 2] :: 0
-↗️ published to example/position/y: 0
-📥 Delivery :: [example/position/y : 2] :: 0
+↗️ published to example/a1b2c3d4e5f6/position/x: 0
+📥 subscriber-1 :: [example/a1b2c3d4e5f6/position/x : 2] :: 0
+↗️ published to example/a1b2c3d4e5f6/position/y: 0
+📥 subscriber-1 :: [example/a1b2c3d4e5f6/position/y : 2] :: 0
 ```
 
-Because publisher and subscriber start concurrently, the subscriber may not be ready before the first message is published. Missing the earliest messages is possible in the current example.
+The publisher starts only after the broker acknowledges the subscriber's subscriptions. If setup fails, the demo reports the failure and skips publishing.
 
 ## Understanding the design
 
@@ -121,17 +122,17 @@ Because publisher and subscriber start concurrently, the subscriber may not be r
 ## Try it yourself
 
 1. In `Main`, pass only the x topic to `Subscriber` and leave both topics configured for `Publisher`. Predict which messages will appear in the subscriber output, then run the demo to check.
-2. Change the publisher's QoS and compare the output.
-3. Add another subscriber and observe how both subscribers receive publications.
+2. Keep the first subscriber listening to x only. Add a second `Subscriber` for the same x topic and start it in a thread named `subscriber-2`. Call `awaitSubscriptions()` on both subscribers before starting the publisher. Predict whether they will each receive every x value or split the values, then compare the output lines for the two subscribers.
+3. Change the publisher's QoS and compare the output.
 4. Run publisher and subscriber as independent applications rather than threads in one application.
 5. Update the UML diagram after changing the Java design.
 
 ## Public broker precautions
 
-`broker.hivemq.com` is a public test service. **Never publish passwords, private data, or other sensitive information.** Other clients can publish to the same topics. For classroom experiments, replace the example topic names with unique names such as `example/<random-suffix>/position/x` and `example/<random-suffix>/position/y`.
+`broker.hivemq.com` is a public test service. **Never publish passwords, private data, or other sensitive information.** Other clients can publish to the same topics. The random suffix helps keep classroom runs separate. Use the same printed topic name if you deliberately want another MQTT client to listen.
 
-If no messages appear, verify internet access, TCP port 1883, and broker availability. Also check whether the subscriber finished subscribing before the publisher sent its first message.
+If no messages appear, verify internet access, TCP port 1883, and broker availability.
 
 ## Current limitations
 
-This is an introductory demonstration, not a production-ready MQTT client. The subscriber runs until interrupted, the initial publisher/subscriber startup is not coordinated, and reconnection and graceful shutdown are not implemented. These are opportunities for subsequent refactoring and architectural discussion.
+This is an introductory demonstration, not a production-ready MQTT client. The subscriber runs until interrupted, and reconnection and graceful shutdown are not implemented. These are opportunities for subsequent refactoring and architectural discussion.
