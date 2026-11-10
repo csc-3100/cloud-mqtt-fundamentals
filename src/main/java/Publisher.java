@@ -33,7 +33,7 @@ public class Publisher implements Runnable {
 			// publish messages periodically
 			int counter = 0;
 			while (counter < 10) {
-				String content = "This is message " + counter;
+				String content = Integer.toString(counter);
 				MqttMessage message = new MqttMessage(content.getBytes(StandardCharsets.UTF_8));
 				message.setQos(2);
 				if (client.isConnected()) {
