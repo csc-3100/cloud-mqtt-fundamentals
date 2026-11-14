@@ -1,4 +1,5 @@
-import java.util.concurrent.CompletableFuture;
+import java.util.Objects;
+import java.util.function.Consumer;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
@@ -7,74 +8,57 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * Listens for position messages using the MQTT callback interface.
+ * Receives messages using Eclipse Paho's callback/listener interface.
  *
  * @author javiergs
- * @version 2.0
  */
-public class Subscriber implements Runnable, MqttCallback {
-
-    private final String brokerUrl;
+public final class Subscriber implements MqttCallback, AutoCloseable {
     private final String topic;
-    private final CompletableFuture<Boolean> subscriptionReady = new CompletableFuture<>();
+    private final MqttClient client;
+    private final Consumer<PositionMessage> onPosition;
 
-    public Subscriber(String brokerUrl, String topic) {
-        this.brokerUrl = brokerUrl;
+    public Subscriber(String brokerUrl, String topic, Consumer<PositionMessage> onPosition)
+            throws MqttException {
         this.topic = topic;
+        this.onPosition = Objects.requireNonNull(onPosition);
+        this.client = new MqttClient(brokerUrl, MqttClient.generateClientId());
+        this.client.setCallback(this);
     }
 
-    public boolean awaitSubscription() {
-        return subscriptionReady.join();
-    }
-
-    @Override
-    public void run() {
-        MqttClient client = null;
-        try {
-            client = new MqttClient(brokerUrl, MqttClient.generateClientId());
-            client.setCallback(this);
-            client.connect();
-            client.subscribe(topic, 2);
-            System.out.println("Subscriber listening on: " + topic);
-            subscriptionReady.complete(true);
-
-            // Keep the client alive so Paho can invoke messageArrived.
-            while (!Thread.currentThread().isInterrupted()) {
-                Thread.sleep(1000);
-            }
-        } catch (MqttException e) {
-            System.err.println("Subscriber MQTT error: " + e.getMessage());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } finally {
-            subscriptionReady.complete(false);
-            if (client != null && client.isConnected()) {
-                try {
-                    client.disconnect();
-                } catch (MqttException e) {
-                    System.err.println("Subscriber disconnect error: " + e.getMessage());
-                }
-            }
-        }
-    }
-
-    @Override
-    public void connectionLost(Throwable cause) {
-        System.err.println("Subscriber connection lost: " + cause.getMessage());
+    public void connect() throws MqttException {
+        client.connect();
+        client.subscribe(topic, MqttConfig.QOS);
+        System.out.println("Subscribed to: " + topic);
     }
 
     @Override
     public void messageArrived(String topic, MqttMessage message) {
         try {
-            PositionMessage position = PositionMessage.fromPayload(message.getPayload());
-            System.out.println("Received (" + topic + ", QoS " + message.getQos() + "): " + position);
+            onPosition.accept(PositionMessage.fromPayload(message.getPayload()));
         } catch (IllegalArgumentException e) {
-            System.err.println("Invalid position payload: " + e.getMessage());
+            System.err.println("Ignored invalid position message: " + e.getMessage());
         }
     }
 
     @Override
+    public void connectionLost(Throwable cause) {
+        System.err.println("Subscriber connection lost: " +
+                (cause == null ? "unknown cause" : cause.getMessage()));
+    }
+
+    @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
-        // Required by MqttCallback; this client only subscribes.
+        // The subscriber does not publish messages.
+    }
+
+    @Override
+    public void close() throws MqttException {
+        try {
+            if (client.isConnected()) {
+                client.disconnect();
+            }
+        } finally {
+            client.close();
+        }
     }
 }

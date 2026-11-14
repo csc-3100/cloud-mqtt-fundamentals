@@ -1,36 +1,49 @@
 # MQTT Fundamentals — Java
 
-A minimal [Eclipse Paho](https://eclipse.dev/paho/) example of **publish–subscribe communication** through an MQTT broker. The companion article explains the concepts: [IoT Fundamentals: Streaming Data with MQTT in Java](https://medium.com/javarevisited/streaming-iot-sensor-data-with-java-and-mqtt-1355712e1233?source=friends_link&sk=6cb4b9327d8a60d1706289dc90afa281) (free access via Medium Friend Link).
+A small Java example of **MQTT publish–subscribe**, with two ways to see the *same* position messages: the terminal and a Swing grid (Brokerverse). Both use [Eclipse Paho](https://eclipse.dev/paho/) and the same broker, topic, and message format.
 
-## How it works
-
-```text
-PositionMessage → Publisher → MQTT Broker → Subscriber → PositionMessage
-   Java object       bytes                          bytes       Java object
-```
-
-- `Main` configures the broker and topic, starts the subscriber, then starts the publisher.
-- `Publisher` sends ten position updates as MQTT messages.
-- `Subscriber` implements `MqttCallback` and receives each update in `messageArrived(...)`.
-- `PositionMessage` holds `x` and `y`, encoding and decoding the UTF-8 payload bytes.
-
-See the [UML class diagram](DIAGRAM.md).
+For the detailed introduction, read [IoT Fundamentals: Streaming Data with MQTT in Java](https://medium.com/javarevisited/streaming-iot-sensor-data-with-java-and-mqtt-1355712e1233?source=friends_link&sk=6cb4b9327d8a60d1706289dc90afa281) (free-access Medium Friend Link). The article's code predates this unified example; the article will be aligned in a separate step.
 
 ## Run
 
-Requires **Java 17+**, **Maven**, and an internet connection.
+Requires **Java 17+**, **Maven**, and internet access. In one terminal, start Brokerverse:
 
 ```bash
-mvn compile exec:java
+mvn compile exec:java -Dexec.mainClass=Brokerverse -Dexec.args="myroom alice"
 ```
 
-The example uses:
+In another terminal, run the console example in the **same room**:
+
+```bash
+mvn compile exec:java -Dexec.mainClass=Main -Dexec.args="myroom console1"
+```
+
+The console publishes ten positions and exits. Brokerverse displays incoming positions and publishes its own as you move the **arrow keys**. Run a second Brokerverse with the same room and a different player ID to watch both players move. Close the GUI window to disconnect.
+
+## Design
+
+- **`Main`** — console entry point.
+- **`Brokerverse` / `WorldPanel`** — Swing entry point and visualization.
+- **`Publisher`** — turns a `PositionMessage` into an MQTT publication.
+- **`Subscriber`** — implements `MqttCallback` and converts incoming bytes into a `PositionMessage`.
+- **`PositionMessage`** — immutable `playerId`, `x`, `y`; UTF-8 `toPayload()` and `fromPayload()`.
+- **`MqttConfig`** — shared broker, QoS, and room-based topic configuration.
+
+[UML class diagram](DIAGRAM.md)
+
+## MQTT settings
 
 - **Broker:** `tcp://broker.hivemq.com:1883`
-- **Topic:** `example/<random-id>/position` (printed when the application starts)
-- **Payload:** `x,y` encoded as UTF-8 bytes, for example `3,3`
+- **Topic:** `csc3100/mqtt-fundamentals/<room>/position`
+- **Payload:** UTF-8 text `playerId,x,y` (example: `alice,400,300`)
 - **QoS:** 2
 
-The subscriber connects and subscribes before the publisher begins. Both run in separate threads in the same application. Stop listening with **Ctrl+C**.
+The default room is `demo` when no arguments are supplied, but using a distinctive room name helps avoid interference with other people on the public broker. Choose distinct player IDs for each instance.
 
-This is a public test broker: do not publish private or sensitive data. The example demonstrates basic messaging, not production-ready reconnection or security.
+This is an **educational demo**, not a secure or fault-tolerant service. Do not publish sensitive data to a public broker. Disconnect/reconnect, message retention, and production error handling are beyond its scope.
+
+## Test
+
+```bash
+mvn test
+```

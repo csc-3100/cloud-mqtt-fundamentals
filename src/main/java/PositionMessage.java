@@ -1,19 +1,26 @@
 import java.nio.charset.StandardCharsets;
 
 /**
- * A position update and its MQTT payload representation.
+ * A sender's position and its serialized MQTT payload.
  *
- * MQTT transports bytes. This class converts between a Java object
- * and two comma-separated integers encoded as UTF-8 bytes.
+ * Wire format: playerId,x,y encoded as UTF-8 (for example, alice,40,60).
  */
 public final class PositionMessage {
-
+    private final String playerId;
     private final int x;
     private final int y;
 
-    public PositionMessage(int x, int y) {
+    public PositionMessage(String playerId, int x, int y) {
+        if (playerId == null || !playerId.matches("[A-Za-z0-9_-]{1,32}")) {
+            throw new IllegalArgumentException("Player ID must contain 1-32 letters, numbers, '-' or '_'.");
+        }
+        this.playerId = playerId;
         this.x = x;
         this.y = y;
+    }
+
+    public String getPlayerId() {
+        return playerId;
     }
 
     public int getX() {
@@ -25,24 +32,26 @@ public final class PositionMessage {
     }
 
     public byte[] toPayload() {
-        return (x + "," + y).getBytes(StandardCharsets.UTF_8);
+        return (playerId + "," + x + "," + y).getBytes(StandardCharsets.UTF_8);
     }
 
     public static PositionMessage fromPayload(byte[] payload) {
-        String text = new String(payload, StandardCharsets.UTF_8);
-        String[] values = text.split(",", -1);
-        if (values.length != 2) {
-            throw new IllegalArgumentException("Expected two coordinates: x,y");
+        if (payload == null) {
+            throw new IllegalArgumentException("Payload cannot be null.");
+        }
+        String[] parts = new String(payload, StandardCharsets.UTF_8).split(",", -1);
+        if (parts.length != 3) {
+            throw new IllegalArgumentException("Expected playerId,x,y.");
         }
         try {
-            return new PositionMessage(Integer.parseInt(values[0]), Integer.parseInt(values[1]));
+            return new PositionMessage(parts[0], Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Coordinates must be integers: " + text, e);
+            throw new IllegalArgumentException("Coordinates must be integers.", e);
         }
     }
 
     @Override
     public String toString() {
-        return "x=" + x + ", y=" + y;
+        return playerId + " at (" + x + ", " + y + ")";
     }
 }

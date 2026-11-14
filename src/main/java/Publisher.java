@@ -3,50 +3,38 @@ import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 /**
- * Publishes position updates to a topic through an MQTT broker.
+ * Sends position updates to a shared MQTT topic.
  *
  * @author javiergs
- * @version 2.0
  */
-public class Publisher implements Runnable {
-
-    private final String brokerUrl;
+public final class Publisher implements AutoCloseable {
     private final String topic;
+    private final MqttClient client;
 
-    public Publisher(String brokerUrl, String topic) {
-        this.brokerUrl = brokerUrl;
+    public Publisher(String brokerUrl, String topic) throws MqttException {
         this.topic = topic;
+        this.client = new MqttClient(brokerUrl, MqttClient.generateClientId());
+    }
+
+    public void connect() throws MqttException {
+        client.connect();
+    }
+
+    public void publish(PositionMessage position) throws MqttException {
+        MqttMessage message = new MqttMessage(position.toPayload());
+        message.setQos(MqttConfig.QOS);
+        client.publish(topic, message);
+        System.out.println("Published: " + position);
     }
 
     @Override
-    public void run() {
-        MqttClient client = null;
+    public void close() throws MqttException {
         try {
-            client = new MqttClient(brokerUrl, MqttClient.generateClientId());
-            client.connect();
-            System.out.println("Publisher connected.");
-
-            for (int step = 0; step < 10; step++) {
-                PositionMessage position = new PositionMessage(step, step);
-                MqttMessage message = new MqttMessage(position.toPayload());
-                message.setQos(2);
-
-                client.publish(topic, message);
-                System.out.println("Published: " + position);
-                Thread.sleep(1000);
+            if (client.isConnected()) {
+                client.disconnect();
             }
-        } catch (MqttException e) {
-            System.err.println("Publisher MQTT error: " + e.getMessage());
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
         } finally {
-            if (client != null && client.isConnected()) {
-                try {
-                    client.disconnect();
-                } catch (MqttException e) {
-                    System.err.println("Publisher disconnect error: " + e.getMessage());
-                }
-            }
+            client.close();
         }
     }
 }
