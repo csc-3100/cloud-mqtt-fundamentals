@@ -71,11 +71,13 @@ public final class Brokerverse {
             });
 
             windowClosed.await();
-        } finally {
+            // Flush queued position updates before closing the MQTT publisher.
             outgoing.shutdown();
             if (!outgoing.awaitTermination(2, TimeUnit.SECONDS)) {
                 outgoing.shutdownNow();
             }
+        } finally {
+            outgoing.shutdownNow();
         }
     }
 }
