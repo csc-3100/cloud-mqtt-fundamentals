@@ -1,3 +1,5 @@
+package io.github.csc3100.mqtt;
+
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -20,9 +22,9 @@ public final class Publisher implements AutoCloseable {
         client.connect();
     }
 
-    public void publish(PositionMessage position) throws MqttException {
+    public void publish(Parcel position) throws MqttException {
         MqttMessage message = new MqttMessage(position.toPayload());
-        message.setQos(MqttConfig.QOS);
+        message.setQos(Main.QOS);
         client.publish(topic, message);
         System.out.println("Published: " + position);
     }
