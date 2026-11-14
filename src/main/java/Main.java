@@ -1,26 +1,27 @@
 import java.util.UUID;
 
 /**
- * Starts an MQTT subscriber, then publishes after its subscriptions are ready.
+ * Starts the subscriber before publishing position updates.
  */
 public class Main {
 
-	private static final String BROKER_URL = "tcp://broker.hivemq.com:1883";
+    private static final String BROKER_URL = "tcp://broker.hivemq.com:1883";
 
-	public static void main(String[] args) {
-		String runId = UUID.randomUUID().toString().substring(0, 12);
-		String prefix = "example/" + runId + "/position/";
-		String[] topics = {prefix + "x", prefix + "y"};
-		System.out.println("Run topics: " + String.join(", ", topics));
+    public static void main(String[] args) {
+        String runId = UUID.randomUUID().toString().substring(0, 12);
+        String topic = "example/" + runId + "/position";
+        System.out.println("Broker: " + BROKER_URL);
+        System.out.println("Topic: " + topic);
 
-		Subscriber subscriber = new Subscriber(BROKER_URL, topics);
-		new Thread(subscriber, "subscriber-1").start();
-		if (!subscriber.awaitSubscriptions()) {
-			System.err.println("Subscriptions failed. Publisher was not started.");
-			return;
-		}
+        Subscriber subscriber = new Subscriber(BROKER_URL, topic);
+        new Thread(subscriber, "subscriber").start();
 
-		Publisher publisher = new Publisher(BROKER_URL, topics);
-		new Thread(publisher, "publisher").start();
-	}
+        if (!subscriber.awaitSubscription()) {
+            System.err.println("Subscription failed; publisher will not start.");
+            return;
+        }
+
+        Publisher publisher = new Publisher(BROKER_URL, topic);
+        new Thread(publisher, "publisher").start();
+    }
 }
