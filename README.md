@@ -2,7 +2,7 @@
 
 A small Java example of **MQTT publish–subscribe**, with two ways to see the *same* position messages: the terminal and a Swing grid (Brokerverse). Both use [Eclipse Paho](https://eclipse.dev/paho/) and the same broker, topic, and message format.
 
-For the detailed introduction, read [IoT Fundamentals: Streaming Data with MQTT in Java](https://medium.com/javarevisited/streaming-iot-sensor-data-with-java-and-mqtt-1355712e1233?source=friends_link&sk=6cb4b9327d8a60d1706289dc90afa281) (free-access Medium Friend Link). The article's code predates this unified example; the article will be aligned in a separate step.
+For the detailed introduction, read [IoT Fundamentals: Streaming Data with MQTT in Java](https://medium.com/javarevisited/streaming-iot-sensor-data-with-java-and-mqtt-1355712e1233?source=friends_link&sk=6cb4b9327d8a60d1706289dc90afa281) (free-access Medium Friend Link).
 
 ## Run
 
