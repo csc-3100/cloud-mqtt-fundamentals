@@ -1,55 +1,52 @@
 # MQTT Fundamentals — Java
 
-A small Java example of **MQTT publish–subscribe**, with two ways to see the *same* position messages: the terminal and a Swing grid (Brokerverse). Both use [Eclipse Paho](https://eclipse.dev/paho/) and the same broker, topic, and message format.
+A small [Eclipse Paho](https://eclipse.dev/paho/) example of **publish–subscribe communication**, with two ways to see the same position data: a console demonstration and an optional Swing GUI (Brokerverse).
 
-For the detailed introduction, read [IoT Fundamentals: Streaming Data with MQTT in Java](https://medium.com/javarevisited/streaming-iot-sensor-data-with-java-and-mqtt-1355712e1233?source=friends_link&sk=6cb4b9327d8a60d1706289dc90afa281) (free-access Medium Friend Link).
+## Example 1 — Console
 
-## Run
+The introductory application consists of just four Java classes:
 
-Requires **Java 17+**, **Maven**, and internet access. Compile once:
+- **`Main`** — selects the broker/topic and starts the two clients.
+- **`Publisher`** — encodes a `Parcel` and sends it to the MQTT broker.
+- **`Subscriber`** — implements Paho's `MqttCallback`; receives a `MqttMessage` and reconstructs a `Parcel`.
+- **`Parcel`** — application data (`playerId`, `x`, `y`) with `toPayload()` and `fromPayload()`.
 
-```bash
-mvn compile
+```text
+Parcel → Publisher → MQTT broker → Subscriber → Parcel
+         (encode)                      (decode)
 ```
 
-Then start Brokerverse in one terminal:
+With **Java 17+**, **Maven**, and internet access, run:
 
 ```bash
-mvn exec:java -Dexec.mainClass=Brokerverse -Dexec.args="myroom alice"
+mvn compile exec:java -Dexec.mainClass=io.github.csc3100.mqtt.Main -Dexec.args="myroom console1"
 ```
 
-In another terminal, run the console example in the **same room**:
+The publisher sends ten positions; the subscriber prints them in its MQTT callback.
+
+## Example 2 — Brokerverse GUI
+
+The GUI lives in a **separate `brokerverse` package**, using exactly the same `Parcel`, `Publisher`, and `Subscriber` as the console example.
+
+Start the GUI in one terminal:
 
 ```bash
-mvn exec:java -Dexec.mainClass=Main -Dexec.args="myroom console1"
+mvn compile exec:java -Dexec.mainClass=io.github.csc3100.mqtt.brokerverse.Brokerverse -Dexec.args="myroom alice"
 ```
 
-The console publishes ten positions and exits. Brokerverse displays incoming positions and publishes its own as you move the **arrow keys**. Run a second Brokerverse with the same room and a different player ID to watch both players move. Close the GUI window to disconnect.
-
-## Design
-
-- **`Main`** — console entry point.
-- **`Brokerverse` / `WorldPanel`** — Swing entry point and visualization.
-- **`Publisher`** — turns a `PositionUpdate` into an MQTT publication.
-- **`Subscriber`** — implements `MqttCallback` and converts incoming bytes into a `PositionUpdate`.
-- **`PositionUpdate`** — application data (distinct from Paho's `MqttMessage`); immutable `playerId`, `x`, `y`; UTF-8 `toPayload()` and `fromPayload()`.
-- **`MqttConfig`** — shared broker, QoS, and room-based topic configuration.
-
-[UML class diagram](DIAGRAM.md)
+Run the console command above in another terminal, using the **same room**. Positions from the console should appear on the GUI grid. Use the **arrow keys** in Brokerverse to send its position updates, or run a second GUI with the same room and a different player ID. Close the window to disconnect.
 
 ## MQTT settings
 
 - **Broker:** `tcp://broker.hivemq.com:1883`
 - **Topic:** `csc3100/mqtt-fundamentals/<room>/position`
-- **Payload:** UTF-8 text `playerId,x,y` (example: `alice,400,300`)
+- **Payload:** UTF-8 `playerId,x,y` (for example, `alice,400,300`)
 - **QoS:** 2
 
-The default room is `demo` when no arguments are supplied, but using a distinctive room name helps avoid interference with other people on the public broker. Choose distinct player IDs for each instance.
+The default room is `demo`. Prefer a unique room to avoid collisions on this **public test broker**, and never send confidential data. This example is not production-ready MQTT infrastructure.
 
-This is an **educational demo**, not a secure or fault-tolerant service. Do not publish sensitive data to a public broker. Disconnect/reconnect, message retention, and production error handling are beyond its scope.
+[UML class diagrams](DIAGRAM.md) · [Run unit tests](pom.xml)
 
-## Test
+## Article
 
-```bash
-mvn test
-```
+For the detailed introduction, read [IoT Fundamentals: Streaming Data with MQTT in Java](https://medium.com/javarevisited/streaming-iot-sensor-data-with-java-and-mqtt-1355712e1233?source=friends_link&sk=6cb4b9327d8a60d1706289dc90afa281) (free-access Medium Friend Link).

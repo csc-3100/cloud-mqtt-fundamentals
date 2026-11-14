@@ -1,3 +1,10 @@
+package io.github.csc3100.mqtt.brokerverse;
+
+import io.github.csc3100.mqtt.Main;
+import io.github.csc3100.mqtt.Parcel;
+import io.github.csc3100.mqtt.Publisher;
+import io.github.csc3100.mqtt.Subscriber;
+
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.UUID;
@@ -20,19 +27,19 @@ public final class Brokerverse {
     }
 
     public static void main(String[] args) throws Exception {
-        String room = args.length > 0 ? args[0] : MqttConfig.DEFAULT_ROOM;
+        String room = args.length > 0 ? args[0] : Main.DEFAULT_ROOM;
         String playerId = args.length > 1 ? args[1] :
                 "gui-" + UUID.randomUUID().toString().substring(0, 8);
-        String topic = MqttConfig.topicForRoom(room);
-        System.out.println("Broker: " + MqttConfig.BROKER_URL);
+        String topic = Main.topicForRoom(room);
+        System.out.println("Broker: " + Main.BROKER_URL);
         System.out.println("Topic: " + topic);
 
         CountDownLatch windowClosed = new CountDownLatch(1);
         AtomicReference<WorldPanel> panelRef = new AtomicReference<>();
         ExecutorService outgoing = Executors.newSingleThreadExecutor();
 
-        try (Publisher publisher = new Publisher(MqttConfig.BROKER_URL, topic);
-             Subscriber subscriber = new Subscriber(MqttConfig.BROKER_URL, topic, position -> {
+        try (Publisher publisher = new Publisher(Main.BROKER_URL, topic);
+             Subscriber subscriber = new Subscriber(Main.BROKER_URL, topic, position -> {
                  WorldPanel panel = panelRef.get();
                  if (panel != null) {
                      SwingUtilities.invokeLater(() -> panel.receive(position));
