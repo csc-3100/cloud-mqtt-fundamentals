@@ -1,26 +1,33 @@
 import java.util.UUID;
 
 /**
- * Starts an MQTT subscriber, then publishes after its subscriptions are ready.
+ * Console example: publish ten positions and print incoming messages.
+ *
+ * Usage: Main [room] [playerId]
  */
-public class Main {
+public final class Main {
+    private Main() {
+    }
 
-	private static final String BROKER_URL = "tcp://broker.hivemq.com:1883";
+    public static void main(String[] args) throws Exception {
+        String room = args.length > 0 ? args[0] : MqttConfig.DEFAULT_ROOM;
+        String playerId = args.length > 1 ? args[1] :
+                "console-" + UUID.randomUUID().toString().substring(0, 8);
+        String topic = MqttConfig.topicForRoom(room);
 
-	public static void main(String[] args) {
-		String runId = UUID.randomUUID().toString().substring(0, 12);
-		String prefix = "example/" + runId + "/position/";
-		String[] topics = {prefix + "x", prefix + "y"};
-		System.out.println("Run topics: " + String.join(", ", topics));
+        System.out.println("Broker: " + MqttConfig.BROKER_URL);
+        System.out.println("Topic: " + topic);
 
-		Subscriber subscriber = new Subscriber(BROKER_URL, topics);
-		new Thread(subscriber, "subscriber-1").start();
-		if (!subscriber.awaitSubscriptions()) {
-			System.err.println("Subscriptions failed. Publisher was not started.");
-			return;
-		}
+        try (Subscriber subscriber = new Subscriber(MqttConfig.BROKER_URL, topic,
+                position -> System.out.println("Received: " + position));
+             Publisher publisher = new Publisher(MqttConfig.BROKER_URL, topic)) {
+            subscriber.connect(); // Subscribe before publishing.
+            publisher.connect();
 
-		Publisher publisher = new Publisher(BROKER_URL, topics);
-		new Thread(publisher, "publisher").start();
-	}
+            for (int i = 0; i < 10; i++) {
+                publisher.publish(new PositionMessage(playerId, 40 + i * 20, 60 + i * 20));
+                Thread.sleep(1000);
+            }
+        }
+    }
 }
