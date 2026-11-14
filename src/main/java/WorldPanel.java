@@ -40,12 +40,12 @@ public final class WorldPanel extends JPanel {
         getActionMap().put(action, new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent event) {
-                move(dx, dy);
+                moveBy(dx, dy);
             }
         });
     }
 
-    private void move(int dx, int dy) {
+    private void moveBy(int dx, int dy) {
         int x = Math.max(0, Math.min(getWidth() - DOT, me.getX() + dx));
         int y = Math.max(0, Math.min(getHeight() - DOT, me.getY() + dy));
         if (x == me.getX() && y == me.getY()) {
