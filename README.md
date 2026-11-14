@@ -1,6 +1,6 @@
 # MQTT Fundamentals — Java
 
-A minimal [Eclipse Paho](https://eclipse.dev/paho/) example of **publish–subscribe communication** through an MQTT broker. The companion article explains the concepts: [IoT Fundamentals: Streaming Data with MQTT in Java](https://medium.com/javarevisited/streaming-iot-sensor-data-with-java-and-mqtt-1355712e1233) (Medium membership may be required).
+A minimal [Eclipse Paho](https://eclipse.dev/paho/) example of **publish–subscribe communication** through an MQTT broker. The companion article explains the concepts: [IoT Fundamentals: Streaming Data with MQTT in Java](https://medium.com/javarevisited/streaming-iot-sensor-data-with-java-and-mqtt-1355712e1233?source=friends_link&sk=6cb4b9327d8a60d1706289dc90afa281) (free access via Medium Friend Link).
 
 ## How it works
 
