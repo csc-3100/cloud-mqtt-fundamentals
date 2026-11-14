@@ -20,7 +20,7 @@ public final class Publisher implements AutoCloseable {
         client.connect();
     }
 
-    public void publish(PositionMessage position) throws MqttException {
+    public void publish(PositionUpdate position) throws MqttException {
         MqttMessage message = new MqttMessage(position.toPayload());
         message.setQos(MqttConfig.QOS);
         client.publish(topic, message);

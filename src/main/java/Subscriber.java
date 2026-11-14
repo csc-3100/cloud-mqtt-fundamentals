@@ -15,9 +15,9 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 public final class Subscriber implements MqttCallback, AutoCloseable {
     private final String topic;
     private final MqttClient client;
-    private final Consumer<PositionMessage> onPosition;
+    private final Consumer<PositionUpdate> onPosition;
 
-    public Subscriber(String brokerUrl, String topic, Consumer<PositionMessage> onPosition)
+    public Subscriber(String brokerUrl, String topic, Consumer<PositionUpdate> onPosition)
             throws MqttException {
         this.topic = topic;
         this.onPosition = Objects.requireNonNull(onPosition);
@@ -34,7 +34,7 @@ public final class Subscriber implements MqttCallback, AutoCloseable {
     @Override
     public void messageArrived(String topic, MqttMessage message) {
         try {
-            onPosition.accept(PositionMessage.fromPayload(message.getPayload()));
+            onPosition.accept(PositionUpdate.fromPayload(message.getPayload()));
         } catch (IllegalArgumentException e) {
             System.err.println("Ignored invalid position message: " + e.getMessage());
         }

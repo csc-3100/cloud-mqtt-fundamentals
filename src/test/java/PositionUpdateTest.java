@@ -6,17 +6,17 @@ import java.nio.charset.StandardCharsets;
 
 import org.junit.jupiter.api.Test;
 
-class PositionMessageTest {
+class PositionUpdateTest {
     @Test
     void encodesPayloadAsUtf8() {
-        PositionMessage position = new PositionMessage("alice", 40, 60);
+        PositionUpdate position = new PositionUpdate("alice", 40, 60);
         assertArrayEquals("alice,40,60".getBytes(StandardCharsets.UTF_8), position.toPayload());
     }
 
     @Test
     void decodesPayloadIntoPosition() {
-        PositionMessage position =
-                PositionMessage.fromPayload("bob,-20,300".getBytes(StandardCharsets.UTF_8));
+        PositionUpdate position =
+                PositionUpdate.fromPayload("bob,-20,300".getBytes(StandardCharsets.UTF_8));
         assertEquals("bob", position.getPlayerId());
         assertEquals(-20, position.getX());
         assertEquals(300, position.getY());
@@ -25,10 +25,10 @@ class PositionMessageTest {
     @Test
     void rejectsMalformedPayloads() {
         assertThrows(IllegalArgumentException.class,
-                () -> PositionMessage.fromPayload("bob,10".getBytes(StandardCharsets.UTF_8)));
+                () -> PositionUpdate.fromPayload("bob,10".getBytes(StandardCharsets.UTF_8)));
         assertThrows(IllegalArgumentException.class,
-                () -> PositionMessage.fromPayload("bob,abc,20".getBytes(StandardCharsets.UTF_8)));
+                () -> PositionUpdate.fromPayload("bob,abc,20".getBytes(StandardCharsets.UTF_8)));
         assertThrows(IllegalArgumentException.class,
-                () -> new PositionMessage("bad,id", 10, 20));
+                () -> new PositionUpdate("bad,id", 10, 20));
     }
 }

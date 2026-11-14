@@ -14,25 +14,25 @@ classDiagram
     class WorldPanel {
         +WorldPanel(String, Consumer)
         +publishCurrentPosition() void
-        +receive(PositionMessage) void
+        +receive(PositionUpdate) void
     }
     class MqttConfig {
         +BROKER_URL$ String
         +QOS$ int
         +topicForRoom(String)$ String
     }
-    class PositionMessage {
+    class PositionUpdate {
         -String playerId
         -int x
         -int y
-        +PositionMessage(String, int, int)
+        +PositionUpdate(String, int, int)
         +toPayload() byte[]
-        +fromPayload(byte[])$ PositionMessage
+        +fromPayload(byte[])$ PositionUpdate
     }
     class Publisher {
         -MqttClient client
         +connect() void
-        +publish(PositionMessage) void
+        +publish(PositionUpdate) void
         +close() void
     }
     class Subscriber {
@@ -60,9 +60,9 @@ classDiagram
     Brokerverse --> Publisher
     Brokerverse --> Subscriber
     Brokerverse --> WorldPanel
-    Publisher --> PositionMessage : encodes
-    Subscriber --> PositionMessage : decodes
-    WorldPanel --> PositionMessage : displays
+    Publisher --> PositionUpdate : encodes
+    Subscriber --> PositionUpdate : decodes
+    WorldPanel --> PositionUpdate : displays
     Publisher --> MqttClient
     Subscriber --> MqttClient
     Subscriber ..|> MqttCallback
@@ -74,7 +74,7 @@ classDiagram
     style WorldPanel fill:#FFF2B3,stroke:#555555,color:#222222
     style Publisher fill:#FFF2B3,stroke:#555555,color:#222222
     style Subscriber fill:#FFF2B3,stroke:#555555,color:#222222
-    style PositionMessage fill:#FFF2B3,stroke:#555555,color:#222222
+    style PositionUpdate fill:#FFF2B3,stroke:#555555,color:#222222
     style MqttConfig fill:#FFF2B3,stroke:#555555,color:#222222
     style MqttCallback fill:#DCEEFF,stroke:#555555,color:#222222
     style MqttClient fill:#DCEEFF,stroke:#555555,color:#222222

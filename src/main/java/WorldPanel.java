@@ -18,12 +18,12 @@ public final class WorldPanel extends JPanel {
     private static final int STEP = 20;
     private static final int DOT = 20;
 
-    private final Map<String, PositionMessage> otherPlayers = new HashMap<>();
-    private final Consumer<PositionMessage> onMove;
-    private PositionMessage me;
+    private final Map<String, PositionUpdate> otherPlayers = new HashMap<>();
+    private final Consumer<PositionUpdate> onMove;
+    private PositionUpdate me;
 
-    public WorldPanel(String playerId, Consumer<PositionMessage> onMove) {
-        this.me = new PositionMessage(playerId, 400, 300);
+    public WorldPanel(String playerId, Consumer<PositionUpdate> onMove) {
+        this.me = new PositionUpdate(playerId, 400, 300);
         this.onMove = onMove;
         setPreferredSize(new Dimension(800, 600));
         setBackground(new Color(172, 248, 199));
@@ -51,7 +51,7 @@ public final class WorldPanel extends JPanel {
         if (x == me.getX() && y == me.getY()) {
             return;
         }
-        me = new PositionMessage(me.getPlayerId(), x, y);
+        me = new PositionUpdate(me.getPlayerId(), x, y);
         repaint();
         onMove.accept(me);
     }
@@ -60,7 +60,7 @@ public final class WorldPanel extends JPanel {
         onMove.accept(me);
     }
 
-    public void receive(PositionMessage position) {
+    public void receive(PositionUpdate position) {
         if (!position.getPlayerId().equals(me.getPlayerId())) {
             otherPlayers.put(position.getPlayerId(), position);
             repaint();
@@ -76,13 +76,13 @@ public final class WorldPanel extends JPanel {
                 graphics.drawRect(x, y, STEP, STEP);
             }
         }
-        for (PositionMessage player : otherPlayers.values()) {
+        for (PositionUpdate player : otherPlayers.values()) {
             drawPosition(graphics, player, Color.RED);
         }
         drawPosition(graphics, me, Color.BLUE);
     }
 
-    private void drawPosition(Graphics graphics, PositionMessage position, Color color) {
+    private void drawPosition(Graphics graphics, PositionUpdate position, Color color) {
         graphics.setColor(color);
         graphics.fillOval(position.getX(), position.getY(), DOT, DOT);
         graphics.setColor(Color.BLACK);

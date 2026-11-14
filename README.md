@@ -30,9 +30,9 @@ The console publishes ten positions and exits. Brokerverse displays incoming pos
 
 - **`Main`** — console entry point.
 - **`Brokerverse` / `WorldPanel`** — Swing entry point and visualization.
-- **`Publisher`** — turns a `PositionMessage` into an MQTT publication.
-- **`Subscriber`** — implements `MqttCallback` and converts incoming bytes into a `PositionMessage`.
-- **`PositionMessage`** — immutable `playerId`, `x`, `y`; UTF-8 `toPayload()` and `fromPayload()`.
+- **`Publisher`** — turns a `PositionUpdate` into an MQTT publication.
+- **`Subscriber`** — implements `MqttCallback` and converts incoming bytes into a `PositionUpdate`.
+- **`PositionUpdate`** — application data (distinct from Paho's `MqttMessage`); immutable `playerId`, `x`, `y`; UTF-8 `toPayload()` and `fromPayload()`.
 - **`MqttConfig`** — shared broker, QoS, and room-based topic configuration.
 
 [UML class diagram](DIAGRAM.md)

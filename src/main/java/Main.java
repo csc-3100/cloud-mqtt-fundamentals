@@ -25,7 +25,7 @@ public final class Main {
             publisher.connect();
 
             for (int i = 0; i < 10; i++) {
-                publisher.publish(new PositionMessage(playerId, 40 + i * 20, 60 + i * 20));
+                publisher.publish(new PositionUpdate(playerId, 40 + i * 20, 60 + i * 20));
                 Thread.sleep(1000);
             }
         }
