@@ -6,16 +6,22 @@ For the detailed introduction, read [IoT Fundamentals: Streaming Data with MQTT 
 
 ## Run
 
-Requires **Java 17+**, **Maven**, and internet access. In one terminal, start Brokerverse:
+Requires **Java 17+**, **Maven**, and internet access. Compile once:
 
 ```bash
-mvn compile exec:java -Dexec.mainClass=Brokerverse -Dexec.args="myroom alice"
+mvn compile
+```
+
+Then start Brokerverse in one terminal:
+
+```bash
+mvn exec:java -Dexec.mainClass=Brokerverse -Dexec.args="myroom alice"
 ```
 
 In another terminal, run the console example in the **same room**:
 
 ```bash
-mvn compile exec:java -Dexec.mainClass=Main -Dexec.args="myroom console1"
+mvn exec:java -Dexec.mainClass=Main -Dexec.args="myroom console1"
 ```
 
 The console publishes ten positions and exits. Brokerverse displays incoming positions and publishes its own as you move the **arrow keys**. Run a second Brokerverse with the same room and a different player ID to watch both players move. Close the GUI window to disconnect.
